@@ -110,7 +110,7 @@ public class WebtrendsSAPISource extends AbstractSource implements EventDrivenSo
    * Web socket event handler
    */
   @WebSocket
-  private class SAPIWebSocket {
+  public class SAPIWebSocket {
     private final CountDownLatch latch = new CountDownLatch(1);
     private final ChannelProcessor channel = getChannelProcessor();
     private final Map<String, String> headers = new HashMap<String, String>();

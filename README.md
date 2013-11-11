@@ -1,4 +1,3 @@
-
 # Webtrends SAPI Flume Source
 
 A custom [Apache Flume](http://flume.apache.org) source that connects to the [Webtrends Streams API (SAPI)](http://webtrends.com/solutions/digital-measurement/streams) and sends the events through the configured data flow (Flume channels, sinks, and downstream agents) into Hadoop.
@@ -16,41 +15,42 @@ A custom [Apache Flume](http://flume.apache.org) source that connects to the [We
     $ ls target
     webtrends-sapi-flume-source-0.0.1-SNAPSHOT.jar
     </pre>
+    
+    Copy JAR to all Flume hosts.
 
 3. **Add JAR to the Flume agents classpath**
 
-    <pre>
-    $ sudo cp /etc/flume-ng/conf/flume-env.sh.template /etc/flume-ng/conf/flume-env.sh
-    $ vi /etc/flume-ng/conf/flume-env.sh
-    FLUME_CLASSPATH=/path/to/file/webtrends-sapi-flume-source-0.0.1-SNAPSHOT.jar
-    </pre>
-
-    or if using Cloudera Manager:
-
-    Services > flume1 > Configuration > View and Edit > Agent (Default) > Advanced > Java Configuration Options for Flume Agent
+    Create a plugins.d directory for webtrends-sapi-flume-source.
+    
+    The plugins.d directory is typically located at `$FLUME_HOME/plugins.d`. Or if using Cloudera Manager `/usr/lib/flume-ng/plugins.d` or `/var/lib/flume-ng/plugins.d`
 
     <pre>
-    --classpath /path/to/file/webtrends-sapi-flume-source-0.0.1-SNAPSHOT.jar
+    $ cd $FLUME_HOME/plugins.d
+    $ mkdir -p webtrends-sapi-flume-source/lib
+    $ mv ~/webtrends-sapi-flume-source-0.0.1-SNAPSHOT.jar webtrends-sapi-flume-source/lib/
     </pre>
-
-4. **Set the Flume agents name to WebtrendsSAPISource**
+   
+4. **Set the Flume agents name to WebtrendsSAPIAgent**
 
     <pre>
     $ vi /etc/default/flume-ng-agent
-    FLUME_AGENT_NAME=WebtrendsSAPISource
+    FLUME_AGENT_NAME=WebtrendsSAPIAgent
     </pre>
 
-    or if using Cloudera Manager:
+    Or if using Cloudera Manager:
 
     Services > flume1 > Configuration > View and Edit > Agent (Default) > Agent Name
 
     <pre>
-    WebtrendsSAPISource
+    WebtrendsSAPIAgent
     </pre>
 
 5. **Set the Flume agents configuration**
 
-    Copy the [example agent configuration](https://github.com/jrkinley/webtrends-sapi-flume-source/blob/master/flume.conf) to /etc/flume-ng/conf/flume.conf.
+    Copy the [example agent configuration](https://github.com/jrkinley/webtrends-sapi-flume-source/blob/master/flume.conf) to `/etc/flume-ng/conf/flume.conf`.
+    
+    Or if using Cloudera Manager, copy the Flume configuration to: 
+    Services > flume1 > Configuration > View and Edit > Agent (Default) > Configuration File
 
     Set the Webtrends SAPI configuration:
 
@@ -70,17 +70,44 @@ A custom [Apache Flume](http://flume.apache.org) source that connects to the [We
     WebtrendsSAPIAgent.sinks.HDFS.hdfs.path = hdfs://nameservice1/user/flume/webtrends/%Y/%m/%d/
     </pre>
 
-    or if using Cloudera Manager, add the Flume configuration to:
+    If using a secure cluster, set the kerberos principal and keytab:
+    
+    <pre>
+    WebtrendsSAPIAgent.sinks.HDFS.hdfs.kerberosPrincipal = flume/_HOST@YOUR-REALM.COM
+    WebtrendsSAPIAgent.sinks.HDFS.hdfs.kerberosKeytab = /etc/flume-ng/conf/flume.keytab
+    WebtrendsSAPIAgent.sinks.HDFS.hdfs.proxyUser = [optional]
 
-    Services > flume1 > Configuration > View and Edit > Agent (Default) > Configuration File
+    # Note: if using a secure cluster managed by Cloudera Manager you can use the following substitution variables
+    # to configure the principal name and the keytab file path:
+    # WebtrendsSAPIAgent.sinks.HDFS.hdfs.kerberosPrincipal = $KERBEROS_PRINCIPAL
+    # WebtrendsSAPIAgent.sinks.HDFS.hdfs.kerberosKeytab = $KERBEROS_KEYTAB
+    </pre>
 
-6. **Create HDFS directory**
+6. **Add Flume proxy user to HDFS [optional]**
+
+    If using the `hdfs.proxyUser` option then you will need to add the following configuration to `core-site.xml`:
+    
+    <pre>
+    <property>
+      <name>hadoop.proxyuser.flume.groups</name>
+      <value>*</value>
+    </property>
+    <property>
+      <name>hadoop.proxyuser.flume.hosts</name>
+      <value>*</value>
+    </property>
+    </pre>    
+
+    In Cloudera Manager this can be added to:
+    Services > hdfs1 > Configuration > View and Edit > Service-Wide > Advanced > Cluster-wide Configuration Safety Valve for core-site.xml
+
+7. **Create HDFS directory**
 
     <pre>
     $ hadoop fs -mkdir /user/flume/webtrends
     </pre>
 
-7. **Start the Flume agent**
+8. **Start the Flume agent**
 
     <pre>
     $ sudo /etc/init.d/flume-ng-agent start
