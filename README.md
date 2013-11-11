@@ -87,7 +87,7 @@ A custom [Apache Flume](http://flume.apache.org) source that connects to the [We
 
     If using the `hdfs.proxyUser` option then you will need to add the following configuration to `core-site.xml`:
     
-    <pre>
+    ```xml
     <property>
       <name>hadoop.proxyuser.flume.groups</name>
       <value>*</value>
@@ -96,7 +96,7 @@ A custom [Apache Flume](http://flume.apache.org) source that connects to the [We
       <name>hadoop.proxyuser.flume.hosts</name>
       <value>*</value>
     </property>
-    </pre>    
+    ```
 
     In Cloudera Manager this can be added to:
     Services > hdfs1 > Configuration > View and Edit > Service-Wide > Advanced > Cluster-wide Configuration Safety Valve for core-site.xml
