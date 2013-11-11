@@ -50,7 +50,7 @@ A custom [Apache Flume](http://flume.apache.org) source that connects to the [We
 
 5. **Set the Flume agents configuration**
 
-    Copy the example agent configuration to /etc/flume-ng/conf/flume.conf.
+    Copy the [example agent configuration](https://github.com/jrkinley/webtrends-sapi-flume-source/blob/master/flume.conf) to /etc/flume-ng/conf/flume.conf.
 
     Set the Webtrends SAPI configuration:
 
